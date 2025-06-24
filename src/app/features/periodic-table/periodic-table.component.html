@@ -1,0 +1,41 @@
+@if (isLoading()) {
+  <mat-progress-spinner mode="indeterminate" class="progress-spinner" />
+} @else {
+  <table mat-table [dataSource]="elementData()" #table>
+    <mat-text-column
+      name="position"
+      headerText="Number"
+      [dataAccessor]="posAccessor"
+    >
+    </mat-text-column>
+    <mat-text-column
+      name="name"
+      headerText="Name"
+      [dataAccessor]="nameAccessor"
+    >
+    </mat-text-column>
+    <mat-text-column
+      name="weight"
+      headerText="Weight"
+      [dataAccessor]="weightAccessor"
+    >
+    </mat-text-column>
+    <mat-text-column
+      name="symbol"
+      headerText="Symbol"
+      [dataAccessor]="symbolAccessor"
+    >
+    </mat-text-column>
+    <tr
+      mat-header-row
+      *matHeaderRowDef="['position', 'name', 'weight', 'symbol']"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="
+        let myRowData;
+        columns: ['position', 'name', 'weight', 'symbol']
+      "
+    ></tr>
+  </table>
+}
