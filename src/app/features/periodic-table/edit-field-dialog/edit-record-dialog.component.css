@@ -1,0 +1,28 @@
+form {
+  display: flex;
+  flex-wrap: nowrap;
+  column-gap: 5px;
+  row-gap: 5px;
+}
+
+mat-dialog-content {
+  overflow: visible;
+}
+
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  form {
+    flex-direction: column;
+    align-content: center;
+  }
+}
+
+
+.mat-cancel {
+  color: white;
+}

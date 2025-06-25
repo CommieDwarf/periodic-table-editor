@@ -1,3 +1,16 @@
-.progress-spinner {
-  margin: auto;
+.filter-form-field {
+  width: 100%;
 }
+
+.progress-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-spinner {
+  position: absolute;
+  top: 200px;
+}
+
+

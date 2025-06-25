@@ -1,0 +1,58 @@
+  <h1 mat-dialog-title>Edit element</h1>
+  <mat-dialog-content>
+    <form [formGroup]="formGroup">
+      <mat-form-field hideRequiredMarker>
+        <mat-label>Name</mat-label>
+        <input matInput
+               type="text"
+               formControlName="name"
+               required
+               [maxLength]="validConfig.name.maxLength"
+        />
+        @if (hasError("name", "required")) {
+          <mat-error>Name can`t be empty</mat-error>
+        }
+        <!--      just in case    -->
+        @if (hasError("name", "maxlength")) {
+          <mat-error>Name is too long</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field hideRequiredMarker>
+        <mat-label>Weight</mat-label>
+        <!-- using type="text" for default maxLength behavior -->
+        <input matInput
+               type="text"
+               formControlName="weight"
+               required
+               inputmode="decimal"
+               [maxlength]="validConfig.weight.maxLength"
+        />
+        @if (hasError("weight", "required")) {
+          <mat-error>Weight can`t be empty</mat-error>
+        } @else if (hasError("weight", "min")) {
+          <mat-error>Weight must be a positive number</mat-error>
+        } @else if ((hasError("weight", "pattern"))) {
+          <mat-error>Weight must be a valid number</mat-error>
+        }
+
+      </mat-form-field>
+      <mat-form-field hideRequiredMarker>
+        <mat-label>Symbol</mat-label>
+        <input matInput
+               formControlName="symbol"
+               [maxlength]="validConfig.symbol.maxLength"
+               required
+        />
+        @if (hasError("symbol", "required")) {
+          <mat-error>Symbol can`t be empty</mat-error>
+        } @else if ((hasError("symbol", "maxlength"))) {
+          <mat-error>Symbol is too long</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button matButton mat-dialog-close color="cancel">Cancel</button>
+    <button matButton (click)="editElement()">Confirm</button>
+  </mat-dialog-actions>
+
