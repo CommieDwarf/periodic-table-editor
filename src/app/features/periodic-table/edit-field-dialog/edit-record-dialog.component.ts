@@ -15,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RowData } from '../periodic-table.component';
+import { PeriodicElement } from '../element-data.constant';
 
 
 @Component({
@@ -36,7 +36,7 @@ import { RowData } from '../periodic-table.component';
   styleUrl: './edit-record-dialog.component.css',
 })
 export class EditRecordDialogComponent {
-  private readonly data: RowData = inject(MAT_DIALOG_DATA);
+  private readonly data: PeriodicElement = inject(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<EditRecordDialogComponent>);
 
   protected readonly validConfig = {
@@ -46,6 +46,7 @@ export class EditRecordDialogComponent {
     weight: {
       min: 0.000000000001, // only positives
       maxLength: 13,
+      pattern: /^\d*\.?\d+$/ // only numbers allowed
     },
     symbol: {
       maxLength: 3
@@ -60,7 +61,7 @@ export class EditRecordDialogComponent {
     weight: new FormControl(this.data.weight, [
       Validators.required,
       Validators.min(this.validConfig.weight.min),
-      Validators.pattern(/^\d*\.?\d+$/) // only numbers allowed
+      Validators.pattern(this.validConfig.weight.pattern) // only numbers allowed
     ]),
     symbol: new FormControl(this.data.symbol, [
       Validators.required,

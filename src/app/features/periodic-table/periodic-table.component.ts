@@ -18,7 +18,6 @@ import {
   MatRow,
   MatRowDef,
   MatTable,
-  MatTextColumn,
 } from '@angular/material/table';
 import { ELEMENT_DATA, PeriodicElement } from './element-data.constant';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -30,13 +29,7 @@ import { ElementDataStore } from './element-data.store';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-
-export interface RowData {
-  position: string;
-  name: string;
-  symbol: string;
-  weight: string;
-}
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-periodic-table',
@@ -46,7 +39,6 @@ export interface RowData {
     MatHeaderRowDef,
     MatRow,
     MatRowDef,
-    MatTextColumn,
     MatProgressSpinner,
     MatColumnDef,
     MatHeaderCellDef,
@@ -69,12 +61,11 @@ export class PeriodicTableComponent implements OnInit {
   readonly store = inject(ElementDataStore);
 
   protected isLoading = signal(true);
-  protected readonly tableData: Signal<RowData[]> = computed(() => {
+
+  protected readonly tableData: Signal<PeriodicElement[]> = computed(() => {
     return this.isLoading()
       ? this.PLACEHOLDER_ROWS
-      : this.store.filteredElements().map((element) => {
-          return this.elementToRowData(element);
-        });
+      : this.store.filteredElements();
   });
 
   protected readonly displayColumns = [
@@ -84,24 +75,44 @@ export class PeriodicTableComponent implements OnInit {
     'symbol',
     'edit',
   ];
-  private readonly PLACEHOLDER_ROWS: RowData[] = Array(5).fill({
-    position: '',
+  private readonly PLACEHOLDER_ROWS: PeriodicElement[] = Array(5).fill({
+    position: 0,
     name: '',
-    weight: '',
+    weight: 0,
     symbol: '',
   });
 
   protected filterControl = new FormControl<string>("");
 
   ngOnInit() {
+    this.subscribeToFilter();
+    this.fetchElements();
+  }
+
+  protected openEditDialog(data: PeriodicElement) {
+    const dialogRef = this.dialog.open(EditRecordDialogComponent, {
+      data,
+    });
+    const subscription = dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((data: PeriodicElement) => {
+        this.store.updateElement(data);
+      });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+  private subscribeToFilter() {
     this.filterControl.valueChanges
-      .pipe(debounceTime(2000))
+      .pipe(debounceTime(2000), takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         if (value !== null) {
           this.store.updateFilter(value);
         }
-    })
+      })
+  }
 
+  private fetchElements() {
     this.simulateFetch()
       .then((data) => {
         this.store.updateElements(data);
@@ -112,19 +123,6 @@ export class PeriodicTableComponent implements OnInit {
       .finally(() => {
         this.isLoading.set(false);
       });
-  }
-
-  protected openEditDialog(data: RowData) {
-    const dialogRef = this.dialog.open(EditRecordDialogComponent, {
-      data,
-    });
-    const subscription = dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((data: RowData) => {
-        this.store.updateElement(this.rowDataToElement(data));
-      });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   private simulateFetch(): Promise<PeriodicElement[]> {
@@ -138,27 +136,5 @@ export class PeriodicTableComponent implements OnInit {
         resolve([]);
       });
     });
-  }
-
-  protected createAccessor(key: keyof PeriodicElement){
-    return (data: PeriodicElement) => {
-      return data[key].toString();
-    }
-  };
-
-  private rowDataToElement(rowData: RowData): PeriodicElement {
-    return {
-      ...rowData,
-      weight: Number(rowData.weight),
-      position: Number(rowData.position)
-    }
-  }
-  // Converting to string for easy placeholder display as empty strings.
-  private elementToRowData(element: PeriodicElement): RowData {
-    return {
-      ...element,
-      weight: element.weight.toString(),
-      position: element.position.toString(),
-    };
   }
 }
