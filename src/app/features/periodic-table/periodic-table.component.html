@@ -1,6 +1,6 @@
 <mat-form-field class="filter-form-field" subscriptSizing="dynamic">
   <mat-label>Filter</mat-label>
-  <input matInput [formControl]="filterControl" class="filter-input" />
+  <input matInput [formControl]="filterControl" />
 </mat-form-field>
 
 <table mat-table [dataSource]="tableData()" #table>
@@ -56,10 +56,18 @@
       </button>
     </td>
   </ng-container>
-  <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
-
-  <tr mat-row *matRowDef="let myRowData; columns: displayColumns"></tr>
+  <tr mat-header-row *matHeaderRowDef="DISPLAYED_COLUMNS"></tr>
+  <tr mat-row *matRowDef="let myRowData; columns: DISPLAYED_COLUMNS"></tr>
 </table>
+@if (error()) {
+  <div class="error">
+    <span>
+      {{ error() }}
+    </span>
+    <br />
+    <button mat-button (click)="fetchElements()">Try Again</button>
+  </div>
+}
 @if (isLoading()) {
   <div class="progress-spinner-container">
     <mat-progress-spinner mode="indeterminate" class="progress-spinner">

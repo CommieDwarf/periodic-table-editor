@@ -49,18 +49,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatFormField,
     MatLabel,
     MatInput,
-    ReactiveFormsModule
+    ReactiveFormsModule,
   ],
   providers: [ElementDataStore],
   templateUrl: './periodic-table.component.html',
   styleUrl: './periodic-table.component.css',
 })
 export class PeriodicTableComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private dialog = inject(MatDialog);
-  readonly store = inject(ElementDataStore);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
+  private readonly store = inject(ElementDataStore);
 
   protected isLoading = signal(true);
+  protected error = signal('');
 
   protected readonly tableData: Signal<PeriodicElement[]> = computed(() => {
     return this.isLoading()
@@ -68,67 +69,73 @@ export class PeriodicTableComponent implements OnInit {
       : this.store.filteredElements();
   });
 
-  protected readonly displayColumns = [
-    'position',
-    'name',
-    'weight',
-    'symbol',
-    'edit',
-  ];
+  protected readonly filterControl = new FormControl<string>('');
+
   private readonly PLACEHOLDER_ROWS: PeriodicElement[] = Array(5).fill({
     position: 0,
     name: '',
     weight: 0,
     symbol: '',
   });
-
-  protected filterControl = new FormControl<string>("");
+  protected readonly DISPLAYED_COLUMNS = [
+    'position',
+    'name',
+    'weight',
+    'symbol',
+    'edit',
+  ];
 
   ngOnInit() {
     this.subscribeToFilter();
     this.fetchElements();
   }
 
-  protected openEditDialog(data: PeriodicElement) {
+  protected openEditDialog(data: PeriodicElement): void {
+    const isMobile = window.innerWidth <= 768;
     const dialogRef = this.dialog.open(EditRecordDialogComponent, {
       data,
+      position: isMobile ? { top: '10px' } : undefined, // Keyboard obscured the dialog.
     });
-    const subscription = dialogRef
+    dialogRef
       .afterClosed()
-      .pipe(take(1))
+      .pipe(takeUntilDestroyed(this.destroyRef), take(1))
       .subscribe((data: PeriodicElement) => {
         this.store.updateElement(data);
       });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  private subscribeToFilter() {
-    this.filterControl.valueChanges
-      .pipe(debounceTime(2000), takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-        if (value !== null) {
-          this.store.updateFilter(value);
-        }
-      })
-  }
-
-  private fetchElements() {
+  protected fetchElements(): void {
+    this.isLoading.set(true);
+    this.error.set('');
     this.simulateFetch()
       .then((data) => {
         this.store.updateElements(data);
       })
       .catch((error) => {
-        // TODO: implement
+        this.error.set('Something went wrong while loading the data.');
+        console.error(error);
       })
       .finally(() => {
         this.isLoading.set(false);
       });
   }
 
+  private subscribeToFilter(): void {
+    this.filterControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef), debounceTime(2000)) // 2s
+      .subscribe((value) => {
+        if (value !== null) {
+          this.store.updateFilter(value.trim());
+        }
+      });
+  }
+
   private simulateFetch(): Promise<PeriodicElement[]> {
     const randomMs = Math.random() * 1000 + 500; // from 500 to 1500;
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
+        // uncomment to simulate error
+        // reject(new Error('Epic fail'));
         resolve(ELEMENT_DATA);
       }, randomMs);
       this.destroyRef.onDestroy(() => {
