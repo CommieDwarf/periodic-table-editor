@@ -6,6 +6,7 @@ import {
   inject,
   computed,
   Signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {
   MatCell,
@@ -54,6 +55,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   providers: [ElementDataStore],
   templateUrl: './periodic-table.component.html',
   styleUrl: './periodic-table.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PeriodicTableComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);

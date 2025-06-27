@@ -1,4 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -36,6 +36,7 @@ import { PeriodicElement } from '../element-data.constant';
   ],
   templateUrl: './edit-record-dialog.component.html',
   styleUrl: './edit-record-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditRecordDialogComponent {
   private readonly data: PeriodicElement = inject(MAT_DIALOG_DATA);
